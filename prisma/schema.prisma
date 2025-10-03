@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      RolesUser @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chamadosSolicitados Chamado[] @relation("RequestedBy")
+  chamadosAtribuidos  Chamado[] @relation("AssignedTo")
+  comments            Comment[]
+  listDepartmentUser ListDepartmentUser[]
+}
+
+model Chamado {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String
+  status      StatusChamado   @default(OPEN)
+  priority    PriorityChamado @default(LOW)
+  closedAt    DateTime?
+  requester   User            @relation("RequestedBy", fields: [requesterId], references: [id])
+  requesterId Int
+  assignee    User?           @relation("AssignedTo", fields: [assigneeId], references: [id])
+  assigneeId  Int?
+  categoryId  Int
+  category    Category        @relation(fields: [categoryId], references: [id])
+  department Department? @relation("DepartmentChamado", fields: [departmentId], references: [id])
+  departmentId Int?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  comments Comment[]
+
+  @@index([requesterId])
+  @@index([assigneeId])
+  @@index([categoryId])
+  @@index([departmentId])
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chamados Chamado[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  chamadoId Int
+  chamado   Chamado  @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Department {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // relacionamentos
+  listDepartmentUser ListDepartmentUser[]
+  chamados Chamado[] @relation("DepartmentChamado")
+}
+
+model ListDepartmentUser {
+  id        Int      @id @default(autoincrement())
+  departmentId Int
+  department Department @relation(fields: [departmentId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// enums 
+
+enum RolesUser {
+  USER
+  AGENT
+  ADMIN
+}
+
+enum StatusChamado {
+  OPEN
+  IN_PROGRESS
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum PriorityChamado {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
