@@ -16,7 +16,9 @@ export default class AuthController {
   }
 
   static async getUser(req: Request, res: Response) {
-    const user = req.cookies.token;
+    const token = req.cookies.token;
+    const authService = new AuthService();
+    const user = await authService.getUser(token);
     sendSuccess(res, { user });
   }
 }

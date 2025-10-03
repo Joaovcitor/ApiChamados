@@ -15,6 +15,19 @@ export default class AuthService {
     return this.handleSuccessfulLogin(user);
   }
 
+  async getUser(token: string) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new BadRequestError("Secret JWT not found");
+    }
+    const payload = jwt.verify(token, secret) as { id: number };
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user) {
+      throw new NotFoundError("Usuário não encontrado");
+    }
+    return user;
+  }
+
   private async findUserByEmail(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
