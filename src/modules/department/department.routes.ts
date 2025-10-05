@@ -8,13 +8,13 @@ const departmentRouter = Router();
 departmentRouter.post(
   "/",
   isAuthenticated,
-  verifyRole(["admin"]),
+  verifyRole(["ADMIN"]),
   DepartmentController.create
 );
 departmentRouter.put(
   "/:id",
   isAuthenticated,
-  verifyRole(["admin"]),
+  verifyRole(["ADMIN"]),
   DepartmentController.update
 );
 departmentRouter.get("/", isAuthenticated, DepartmentController.getAll);

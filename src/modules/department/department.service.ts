@@ -33,6 +33,22 @@ class DepartmentService {
     if (!department) {
       throw new Error("Department not found");
     }
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (user?.role !== "AGENT") {
+      throw new Error("User not agent");
+    }
+    const listDepartmentUser = await prisma.listDepartmentUser.findMany({
+      where: {
+        departmentId: id,
+      },
+    });
+    if (listDepartmentUser.map((item) => item.userId).includes(user.id)) {
+      throw new Error("User already in department");
+    }
     return prisma.listDepartmentUser.create({
       data: {
         departmentId: id,
