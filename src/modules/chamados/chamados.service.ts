@@ -4,7 +4,7 @@ import {
   TicketResponseDTO,
 } from "./chamados.dto";
 import { prisma } from "../../core/prisma/prisma";
-import { PriorityChamado, StatusChamado } from "@prisma/client";
+import { PriorityChamado, StatusChamado, type Chamado } from "@prisma/client";
 import { NotFoundError } from "../../core/errors/appError";
 
 class TicketService {
@@ -22,9 +22,23 @@ class TicketService {
     const ticket = await prisma.chamado.update({
       where: {
         id: id,
-        assigneeId: userId,
       },
-      data,
+      data: {
+        ...data,
+        assigneeId: Number(userId),
+      },
+    });
+    return ticket;
+  }
+  async UserCloseTicket(id: number, userId: number) {
+    const ticket = await prisma.chamado.update({
+      where: {
+        id: id,
+        requesterId: Number(userId),
+      },
+      data: {
+        status: StatusChamado.CLOSED,
+      },
     });
     return ticket;
   }
@@ -60,6 +74,14 @@ class TicketService {
       throw new NotFoundError("Ticket not found");
     }
     return ticket;
+  }
+  async ticketsOfDepartment(departmentId: number): Promise<Chamado[]> {
+    const tickets = await prisma.chamado.findMany({
+      where: {
+        departmentId: departmentId,
+      },
+    });
+    return tickets;
   }
 }
 

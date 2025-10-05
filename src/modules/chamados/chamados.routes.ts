@@ -11,6 +11,12 @@ ticketRouter.get(
   isAuthenticated,
   TicketController.getAllTicketsAssignee
 );
+ticketRouter.get(
+  "/department/:departmentId",
+  isAuthenticated,
+  TicketController.ticketsOfDepartment
+);
+
 // rotas específicas
 ticketRouter.get("/", isAuthenticated, TicketController.getAllTickets);
 ticketRouter.get("/:id", isAuthenticated, TicketController.getTicketById);

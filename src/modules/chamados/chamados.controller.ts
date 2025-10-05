@@ -51,6 +51,11 @@ class TicketController {
     const ticket = await TicketService.getTicketById(id);
     return res.status(200).json(ticket);
   }
+  async ticketsOfDepartment(req: Request, res: Response) {
+    const departmentId = Number(req.params.departmentId);
+    const tickets = await TicketService.ticketsOfDepartment(departmentId);
+    return res.status(200).json(tickets);
+  }
 }
 
 export default new TicketController();

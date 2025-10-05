@@ -18,6 +18,22 @@ class DepartmentController {
     const departments = await DepartmentService.getAll();
     res.status(200).json(departments);
   }
+  async getById(req: Request, res: Response) {
+    const id = Number(req.params.id);
+    const department = await DepartmentService.getById(id);
+    res.status(200).json(department);
+  }
+  async addUserInDepartment(req: Request, res: Response) {
+    const id = Number(req.params.id);
+    const userId = Number(req.body.userId);
+    const department = await DepartmentService.addUserInDepartment(id, userId);
+    res.status(200).json(department);
+  }
+  // async getAllUsersInDepartment(req: Request, res: Response) {
+  //   const id = Number(req.params.id);
+  //   const department = await DepartmentService.getAllUsersInDepartment(id);
+  //   res.status(200).json(department);
+  // }
 }
 
 export default new DepartmentController();

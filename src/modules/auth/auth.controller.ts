@@ -15,6 +15,11 @@ export default class AuthController {
     sendSuccess(res, { user, token });
   }
 
+  static async logout(req: Request, res: Response) {
+    res.clearCookie("token");
+    sendSuccess(res, { message: "Logout realizado com sucesso" });
+  }
+
   static async getUser(req: Request, res: Response) {
     const token = req.cookies.token;
     const authService = new AuthService();

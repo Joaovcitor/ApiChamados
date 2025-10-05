@@ -4,6 +4,7 @@ export interface TicketCreateDTO {
   title: string;
   description: string;
   categoryId: number;
+  departmentId?: number;
 }
 
 export interface TicketUpdateDTO {
