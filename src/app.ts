@@ -20,6 +20,7 @@ class Server {
     this.whiteList = ["http://localhost:8080"];
     this.setupMiddleware();
     this.setupRoutes();
+    this.app.use(errorHandler);
   }
 
   private setupMiddleware(): void {
@@ -28,7 +29,6 @@ class Server {
     this.app.use(cookieParser());
     this.app.use(helmet());
     this.setupCors();
-    this.app.use(errorHandler);
   }
 
   private setupCors(): void {

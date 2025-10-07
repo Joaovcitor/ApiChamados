@@ -26,4 +26,24 @@ export default class AuthController {
     const user = await authService.getUser(token);
     sendSuccess(res, { user });
   }
+  static async updateEmail(req: Request, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { newEmail } = req.body;
+    const authService = new AuthService();
+    const result = await authService.updateEmail(userId, newEmail);
+    sendSuccess(res, result);
+  }
+  static async updatePassword(req: Request, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { newPassword } = req.body;
+    const authService = new AuthService();
+    const result = await authService.updatePassword(userId, newPassword);
+    sendSuccess(res, result);
+  }
 }

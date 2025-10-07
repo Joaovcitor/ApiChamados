@@ -48,7 +48,11 @@ class TicketController {
   }
   async getTicketById(req: Request, res: Response) {
     const id = Number(req.params.id);
-    const ticket = await TicketService.getTicketById(id);
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const ticket = await TicketService.getTicketById(id, userId);
     return res.status(200).json(ticket);
   }
   async ticketsOfDepartment(req: Request, res: Response) {

@@ -32,6 +32,23 @@ export default class AuthService {
     return { user: userWithoutPassword };
   }
 
+  async updateEmail(userId: number, newEmail: string) {
+    await this.findUserByEmail(newEmail);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { email: newEmail },
+    });
+    return { message: "Email atualizado com sucesso" };
+  }
+  async updatePassword(userId: number, newPassword: string) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+    return { message: "Senha atualizada com sucesso" };
+  }
+
   private async findUserByEmail(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {

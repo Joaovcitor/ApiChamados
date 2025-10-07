@@ -64,12 +64,15 @@ class TicketService {
     });
     return tickets;
   }
-  async getTicketById(id: number) {
+  async getTicketById(id: number, userId: number) {
     const ticket = await prisma.chamado.findUnique({
       where: {
         id: id,
       },
     });
+    if (ticket?.assigneeId && ticket.assigneeId !== userId) {
+      throw new NotFoundError("Ticket not found");
+    }
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
