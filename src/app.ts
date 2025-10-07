@@ -7,20 +7,35 @@ import cookieParser from "cookie-parser";
 import cors, { type CorsOptions } from "cors";
 import routesGlobal from "./core/config/routesGlobal";
 import { errorHandler } from "./core/middlewares/errorHandler.middleware";
-
+import { createServer, Server as HttpServer } from "http";
+import { Server as IoServer } from "socket.io";
+import { onConnection } from "./core/config/socketEvents";
 dotenv.config({
   path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
 });
-
+export let io: IoServer;
 class Server {
   public app: Application;
   private readonly whiteList: string[];
+  public httpServer: HttpServer;
   constructor() {
     this.app = express();
-    this.whiteList = ["http://localhost:8080"];
+    this.whiteList = whiteList;
+    this.httpServer = createServer(this.app);
+    io = new IoServer(this.httpServer, {
+      cors: {
+        origin: this.whiteList,
+        credentials: true,
+      },
+    });
     this.setupMiddleware();
     this.setupRoutes();
     this.app.use(errorHandler);
+    this.setuptSocketEvents();
+  }
+
+  private setuptSocketEvents(): void {
+    onConnection(io);
   }
 
   private setupMiddleware(): void {
@@ -51,8 +66,8 @@ class Server {
 
   public startServer(): void {
     const port = process.env.PORT || 3010;
-    this.app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
+    this.httpServer.listen(port, () => {
+      console.log(`🚀 Servidor rodando na porta ${port}`);
     });
   }
 }

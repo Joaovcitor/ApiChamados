@@ -70,7 +70,17 @@ class TicketService {
         id: id,
       },
     });
-    if (ticket?.assigneeId && ticket.assigneeId !== userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    if (
+      user.role === "AGENT" &&
+      ticket?.assigneeId &&
+      ticket.assigneeId !== userId
+    ) {
       throw new NotFoundError("Ticket not found");
     }
     if (!ticket) {
