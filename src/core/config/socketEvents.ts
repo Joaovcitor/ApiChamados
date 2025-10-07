@@ -47,8 +47,6 @@ export const onConnection = (io: Server) => {
     // Todo usuário entra em uma sala privada, para receber notificações diretas
     socket.join(`user:${user.id}`);
 
-    // --- OUVINTES DE EVENTOS VINDOS DO CLIENTE ---
-    // Exemplo: Cliente avisa que entrou na página de um chamado
     socket.on("joinTicketRoom", (ticketId: number) => {
       socket.join(`ticket:${ticketId}`);
       console.log(`Usuário ${user.id} entrou na sala do ticket #${ticketId}`);
