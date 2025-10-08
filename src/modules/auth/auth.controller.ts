@@ -31,9 +31,9 @@ export default class AuthController {
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const { newEmail } = req.body;
+    const { email } = req.body;
     const authService = new AuthService();
-    const result = await authService.updateEmail(userId, newEmail);
+    const result = await authService.updateEmail(userId, email);
     sendSuccess(res, result);
   }
   static async updatePassword(req: Request, res: Response) {
@@ -41,9 +41,9 @@ export default class AuthController {
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const { newPassword } = req.body;
+    const { password } = req.body;
     const authService = new AuthService();
-    const result = await authService.updatePassword(userId, newPassword);
+    const result = await authService.updatePassword(userId, password);
     sendSuccess(res, result);
   }
 }

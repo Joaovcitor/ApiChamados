@@ -33,7 +33,10 @@ export default class AuthService {
   }
 
   async updateEmail(userId: number, newEmail: string) {
-    await this.findUserByEmail(newEmail);
+    const user = await prisma.user.findUnique({ where: { email: newEmail } });
+    if (user) {
+      throw new BadRequestError("Email já está em uso");
+    }
     await prisma.user.update({
       where: { id: userId },
       data: { email: newEmail },

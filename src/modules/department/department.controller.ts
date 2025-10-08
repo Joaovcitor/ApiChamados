@@ -1,6 +1,7 @@
 import DepartmentService from "./department.service";
 import { DepartmentDto, DepartmentUpdateDto } from "./department.dto";
 import { Request, Response } from "express";
+import { io } from "../../app";
 
 class DepartmentController {
   async create(req: Request, res: Response) {
@@ -27,6 +28,7 @@ class DepartmentController {
     const id = Number(req.params.id);
     const userId = Number(req.body.userId);
     const department = await DepartmentService.addUserInDepartment(id, userId);
+    io.to(`department:${id}`).emit("updateDepartment", { department });
     res.status(200).json(department);
   }
   // async getAllUsersInDepartment(req: Request, res: Response) {

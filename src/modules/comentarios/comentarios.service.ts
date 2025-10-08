@@ -53,6 +53,13 @@ class CommentService {
       where: {
         chamadoId,
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
     return comments;
   }
