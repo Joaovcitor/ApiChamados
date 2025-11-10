@@ -1,15 +1,10 @@
-// Define a interface para o payload que você coloca no token
-interface UserPayload {
-  id: number;
-  role: string;
-}
+import type { User } from "@prisma/client";
 
 // Usa 'declare global' para mesclar com os tipos existentes do Express
 declare global {
   namespace Express {
     export interface Request {
-      // Anexa a sua interface UserPayload à interface Request
-      user?: UserPayload;
+      user?: User;
     }
   }
 }

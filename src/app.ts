@@ -31,10 +31,10 @@ class Server {
     this.setupMiddleware();
     this.setupRoutes();
     this.app.use(errorHandler);
-    this.setuptSocketEvents();
+    this.setupSocketEvents();
   }
 
-  private setuptSocketEvents(): void {
+  private setupSocketEvents(): void {
     onConnection(io);
   }
 

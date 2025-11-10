@@ -55,14 +55,14 @@ export default class AuthService {
   private async findUserByEmail(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new NotFoundError("Usuário não encontrado");
+      throw new NotFoundError("Credenciais inválidas");
     }
     return user;
   }
   private async comparePasswords(password: string, userPassword: string) {
     const isPasswordValid = await bcrypt.compare(password, userPassword);
     if (!isPasswordValid) {
-      throw new UnauthorizedError("Senha inválida");
+      throw new UnauthorizedError("Credenciais inválidas");
     }
   }
 

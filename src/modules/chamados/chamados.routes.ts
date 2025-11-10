@@ -21,5 +21,6 @@ ticketRouter.get(
 ticketRouter.get("/", isAuthenticated, TicketController.getAllTickets);
 ticketRouter.get("/:id", isAuthenticated, TicketController.getTicketById);
 ticketRouter.put("/:id", isAuthenticated, TicketController.update);
+ticketRouter.post("/:id/assignees", isAuthenticated, TicketController.addAssignees);
 
 export default ticketRouter;

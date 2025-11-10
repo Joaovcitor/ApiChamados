@@ -17,9 +17,12 @@ model User {
   updatedAt DateTime @updatedAt
 
   chamadosSolicitados Chamado[] @relation("RequestedBy")
-  chamadosAtribuidos  Chamado[] @relation("AssignedTo")
   comments            Comment[]
   listDepartmentUser ListDepartmentUser[]
+  manyAssignees UserManyAssignees[]
+  ticketWatchers TicketWatcher[]
+  ticketHistory TicketAssignmentHistory[]
+  logs AuditLog[]
 }
 
 model Chamado {
@@ -31,21 +34,148 @@ model Chamado {
   closedAt    DateTime?
   requester   User            @relation("RequestedBy", fields: [requesterId], references: [id])
   requesterId Int
-  assignee    User?           @relation("AssignedTo", fields: [assigneeId], references: [id])
-  assigneeId  Int?
   categoryId  Int
   category    Category        @relation(fields: [categoryId], references: [id])
   department Department? @relation("DepartmentChamado", fields: [departmentId], references: [id])
   departmentId Int?
+  onlyOneAssignee Boolean        @default(false) // Indica se o chamado tem apenas um responsável
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
+  watchers       TicketWatcher[]
+  assignmentHist TicketAssignmentHistory[]
+  workflow       WorkflowInstance?
+  slaState       SlaState?
+
   comments Comment[]
+  manyAssignees UserManyAssignees[]
 
   @@index([requesterId])
-  @@index([assigneeId])
   @@index([categoryId])
   @@index([departmentId])
+}
+
+model TicketWatcher {
+  userId    Int
+  chamadoId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  chamado Chamado @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+
+  @@id([userId, chamadoId])
+  @@index([chamadoId])
+}
+
+model TicketAssignmentHistory {
+  id         Int      @id @default(autoincrement())
+  chamadoId  Int
+  fromUserId Int?
+  toUserId   Int?
+  reason     String?
+  createdBy  Int      // quem executou a movimentação
+  createdAt  DateTime @default(now())
+
+  chamado Chamado @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  actor   User    @relation(fields: [createdBy], references: [id])
+
+  @@index([chamadoId])
+  @@index([createdAt])
+}
+
+model SlaPolicy {
+  id                    Int       @id @default(autoincrement())
+  departmentId          Int?
+  categoryId            Int?
+  responseTimeMinutes   Int       // prazo para primeira resposta
+  resolutionTimeMinutes Int       // prazo para resolução
+  workingWindow         String?   // JSON (ex.: horários úteis)
+  pauseOnStatuses       String?   // JSON com lista de StatusChamado
+  active                Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  department Department? @relation(fields: [departmentId], references: [id])
+  category   Category?   @relation(fields: [categoryId], references: [id])
+  slaState SlaState[]
+  @@index([departmentId, categoryId])
+}
+
+model SlaState {
+  id              Int          @id @default(autoincrement())
+  chamadoId       Int          @unique
+  policyId        Int
+  responseDueAt   DateTime
+  resolutionDueAt DateTime
+  paused          Boolean      @default(false)
+  status          SlaStatus    @default(OK) // OK / IMMINENT / BREACHED
+  lastTickAt      DateTime?
+
+  chamado Chamado  @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  policy  SlaPolicy @relation(fields: [policyId], references: [id])
+
+  @@index([status])
+  @@index([responseDueAt])
+  @@index([resolutionDueAt])
+}
+
+model WorkflowDefinition {
+  id           Int      @id @default(autoincrement())
+  categoryId   Int?
+  name         String
+  version      Int
+  definition   String   // JSON: estados, transições, requisitos
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category Category? @relation(fields: [categoryId], references: [id])
+  flowInstance WorkflowInstance[]
+  @@index([categoryId, active])
+  @@unique([categoryId, version])
+}
+
+// Instância de workflow aplicada a um chamado
+model WorkflowInstance {
+  id            Int                 @id @default(autoincrement())
+  chamadoId     Int                 @unique
+  definitionId  Int
+  currentState  String              // ex.: "triagem", "execucao", "validacao"
+  data          String?             // JSON com campos/checklists preenchidos
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  chamado    Chamado           @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  definition WorkflowDefinition @relation(fields: [definitionId], references: [id])
+
+  @@index([currentState])
+}
+
+// Auditoria geral (mudanças em entidades e ações do sistema)
+model AuditLog {
+  id          Int            @id @default(autoincrement())
+  entityType  AuditEntity    // CHAMADO, USER, CATEGORY, DEPARTMENT, SLA, WORKFLOW
+  entityId    Int
+  actorId     Int?
+  action      String         // ex.: "STATUS_CHANGE", "ASSIGNEE_ADD"
+  from        String?        // JSON
+  to          String?        // JSON
+  metadata    String?        // JSON
+  createdAt   DateTime       @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model UserManyAssignees {
+  userId    Int
+  chamadoId Int
+  user      User    @relation(fields: [userId], references: [id])
+  chamado   Chamado @relation(fields: [chamadoId], references: [id])
+
+  @@id([userId, chamadoId])
 }
 
 model Category {
@@ -55,6 +185,8 @@ model Category {
   updatedAt DateTime @updatedAt
 
   chamados Chamado[]
+  workFLow WorkflowDefinition[]
+  slaPolicy SlaPolicy[]
 }
 
 model Comment {
@@ -76,6 +208,7 @@ model Department {
   // relacionamentos
   listDepartmentUser ListDepartmentUser[]
   chamados Chamado[] @relation("DepartmentChamado")
+  slaPolicy SlaPolicy[]
 }
 
 model ListDepartmentUser {
@@ -84,6 +217,28 @@ model ListDepartmentUser {
   department Department @relation(fields: [departmentId], references: [id])
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+  @@unique([departmentId, userId])
+}
+
+model NotificationEvent {
+  id         Int                 @id @default(autoincrement())
+  eventType  String              // ex.: "ticket.created", "sla.breach"
+  payload    String              // JSON
+  status     NotificationStatus  @default(PENDING)
+  attempts   Int                 @default(0)
+  nextTryAt  DateTime?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@index([status, nextTryAt])
+}
+
+enum NotificationStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
 }
 
 // enums 
@@ -92,6 +247,8 @@ enum RolesUser {
   USER
   AGENT
   ADMIN
+  COORDENADOR
+  SUPERVISOR
 }
 
 enum StatusChamado {
@@ -107,4 +264,19 @@ enum PriorityChamado {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum SlaStatus {
+  OK
+  IMMINENT
+  BREACHED
+}
+
+enum AuditEntity {
+  CHAMADO
+  USER
+  CATEGORY
+  DEPARTMENT
+  SLA
+  WORKFLOW
 }

@@ -16,7 +16,14 @@ class DepartmentService {
     });
   }
   async getAll() {
-    return prisma.department.findMany({ include: { chamados: true } });
+    return prisma.department.findMany({
+      include: {
+        chamados: true,
+        listDepartmentUser: {
+          include: { user: { select: { id: true, name: true } } },
+        },
+      },
+    });
   }
   async getById(id: number) {
     return prisma.department.findUnique({

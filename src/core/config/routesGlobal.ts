@@ -5,6 +5,7 @@ import categoriaRouter from "../../modules/categoria/categoria.routes";
 import ticketRouter from "../../modules/chamados/chamados.routes";
 import commentRouter from "../../modules/comentarios/comentarios.routes";
 import departmentRouter from "../../modules/department/department.routes";
+import healthRouter from "./health.routes";
 const routesGlobal = Router();
 routesGlobal.use("/user", userRouter);
 routesGlobal.use("/auth", authRouter);
@@ -12,5 +13,6 @@ routesGlobal.use("/categoria", categoriaRouter);
 routesGlobal.use("/tickets", ticketRouter);
 routesGlobal.use("/comments", commentRouter);
 routesGlobal.use("/department", departmentRouter);
+routesGlobal.use("/health", healthRouter);
 
 export default routesGlobal;
