@@ -74,20 +74,17 @@ class TicketService {
   }
 
   async update(id: number, data: TicketUpdateDTO) {
-    try {
-      const ticket = await prisma.chamado.findUnique({ where: { id } });
-      if (ticket?.status === StatusChamado.CLOSED) {
-        throw new BadRequestError(
-          "Chamado está fechado e não pode ser editado"
-        );
-      }
-      return await prisma.chamado.update({
-        where: { id },
-        data,
-      });
-    } catch {
+    const ticket = await prisma.chamado.findUnique({ where: { id } });
+    if (ticket?.status === StatusChamado.CLOSED) {
+      throw new BadRequestError("Chamado está fechado e não pode ser editado");
+    }
+    if (!ticket) {
       throw new NotFoundError("Chamado não encontrado");
     }
+    return await prisma.chamado.update({
+      where: { id },
+      data,
+    });
   }
 
   async userCloseTicket(id: number, userId: number) {
@@ -196,8 +193,19 @@ class TicketService {
   }
 
   async addAssignees(ticketId: number, assigneesId: number[]) {
-    const ticket = await prisma.chamado.findUnique({ where: { id: ticketId } });
+    const ticket = await prisma.chamado.findUnique({
+      where: { id: ticketId },
+      include: { manyAssignees: true },
+    });
     if (!ticket) throw new NotFoundError("Chamado não encontrado!");
+    if (ticket.onlyOneAssignee && assigneesId.length > 1) {
+      throw new BadRequestError("Este chamado permite apenas um responsável");
+    }
+    if (ticket.manyAssignees.find((uId) => assigneesId.includes(uId.userId))) {
+      throw new BadRequestError(
+        "Algum dos usuários já é responsável por esse chamado!"
+      );
+    }
 
     await prisma.userManyAssignees.createMany({
       data: assigneesId.map((userId) => ({ chamadoId: ticketId, userId })),

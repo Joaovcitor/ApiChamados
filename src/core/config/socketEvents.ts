@@ -5,7 +5,6 @@ import { prisma } from "../prisma/prisma"; // Ajuste o caminho se necessário
 // Tipagem para os dados que vamos anexar ao socket
 interface SocketUserData {
   id: number;
-  role: string;
 }
 
 export const onConnection = (io: Server) => {
@@ -23,12 +22,10 @@ export const onConnection = (io: Server) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
         id: number;
-        role: string;
       };
 
       (socket as any).user = {
         id: decoded.id,
-        role: decoded.role,
       } as SocketUserData;
       next();
     } catch (error: any) {

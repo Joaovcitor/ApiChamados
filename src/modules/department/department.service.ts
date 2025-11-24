@@ -44,8 +44,17 @@ class DepartmentService {
       where: {
         id: userId,
       },
+      include: {
+        role: true,
+      },
     });
-    if (user?.role !== "AGENT") {
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
+    const hasAgentRole = user.role.some((r) => r.role === "AGENT");
+
+    if (!hasAgentRole) {
       throw new Error("User not agent");
     }
     const listDepartmentUser = await prisma.listDepartmentUser.findMany({

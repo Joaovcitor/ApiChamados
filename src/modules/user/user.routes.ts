@@ -22,5 +22,17 @@ userRouter.put(
   verifyRole(["ADMIN"]),
   userController.changeRoleUser
 );
+userRouter.patch(
+  "/:id",
+  isAuthenticated,
+  verifyRole(["ADMIN"]),
+  userController.addRoleUser
+);
+userRouter.delete(
+  "/:id",
+  isAuthenticated,
+  verifyRole(["ADMIN"]),
+  userController.removeRoleUser
+);
 
 export default userRouter;

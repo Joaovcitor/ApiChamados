@@ -26,6 +26,9 @@ export async function isAuthenticated(
     const decoded = jwt.verify(token, secret) as JwtPayload;
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
+      include: {
+        role: true,
+      },
     });
 
     if (!user) {

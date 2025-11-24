@@ -12,7 +12,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      RolesUser @default(USER)
+  role      RolesUser[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -23,6 +23,9 @@ model User {
   ticketWatchers TicketWatcher[]
   ticketHistory TicketAssignmentHistory[]
   logs AuditLog[]
+  transacoes TransacaoFinanceira[]
+  itensInventarioResponsavel ItemInventario[]
+  movimentacoesInventarioResponsavel MovimentacaoInventario[]
 }
 
 model Chamado {
@@ -49,6 +52,7 @@ model Chamado {
 
   comments Comment[]
   manyAssignees UserManyAssignees[]
+  transacoes TransacaoFinanceira[]
 
   @@index([requesterId])
   @@index([categoryId])
@@ -209,6 +213,8 @@ model Department {
   listDepartmentUser ListDepartmentUser[]
   chamados Chamado[] @relation("DepartmentChamado")
   slaPolicy SlaPolicy[]
+  transacoes TransacaoFinanceira[]
+  itemInventario ItemInventario[]
 }
 
 model ListDepartmentUser {
@@ -233,6 +239,64 @@ model NotificationEvent {
   @@index([status, nextTryAt])
 }
 
+model RolesUser {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  role      EnumRolesUser @default(USER)
+}
+
+model TransacaoFinanceira {
+  id          Int      @id @default(autoincrement())
+  valor       Float
+  descricao   String
+  tipo        TipoTransacaoFinanceira @relation(fields: [tipoId], references: [id])
+  tipoId      Int
+  departamento Department @relation(fields: [departamentoId], references: [id])
+  departamentoId Int
+  categoria   String
+  data        DateTime @default(now())
+  chamado     Chamado? @relation(fields: [chamadoId], references: [id])
+  chamadoId   Int?
+  responsavel User @relation(fields: [responsavelId], references: [id])
+  responsavelId Int
+}
+
+model TipoTransacaoFinanceira {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  descricao String?
+  transacoes TransacaoFinanceira[]
+}
+
+model ItemInventario {
+  id            Int       @id @default(autoincrement())
+  nome          String
+  quantidade    Int
+  localizacao   String
+  valorUnitario Float?
+  fornecedor    String?
+  departamento Department @relation(fields: [departamentoId], references: [id])
+  departamentoId Int
+  movimentacoes MovimentacaoInventario[]
+  usuarioResponsavel User @relation(fields: [usuarioResponsavelId], references: [id])
+  usuarioResponsavelId Int
+  createdAt     DateTime  @default(now()) 
+  updatedAt     DateTime  @updatedAt
+}
+
+model MovimentacaoInventario {
+  id          Int       @id @default(autoincrement())
+  item        ItemInventario @relation(fields: [itemId], references: [id])
+  itemId      Int
+  quantidade  Int
+  tipo        String    // ENTRADA ou SAIDA
+  motivo      String
+  responsavel User      @relation(fields: [responsavelId], references: [id])
+  responsavelId Int
+  data        DateTime  @default(now())
+}
+
 enum NotificationStatus {
   PENDING
   PROCESSING
@@ -243,12 +307,17 @@ enum NotificationStatus {
 
 // enums 
 
-enum RolesUser {
+enum EnumRolesUser {
   USER
   AGENT
   ADMIN
   COORDENADOR
   SUPERVISOR
+  FINANCEIRO
+  ESTOQUE_MANAGER
+  ESTOQUE_WATCHER
+  ESTOQUE_MANAGER_DEPARTMENT
+  ESTOQUE_WATCHER_DEPARTMENT
 }
 
 enum StatusChamado {

@@ -23,7 +23,7 @@ export default class AuthService {
     const payload = jwt.verify(token, secret) as { id: number };
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
-      include: { listDepartmentUser: true },
+      include: { listDepartmentUser: true, role: true },
     });
     if (!user) {
       throw new NotFoundError("Usuário não encontrado");
@@ -53,7 +53,10 @@ export default class AuthService {
   }
 
   private async findUserByEmail(email: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { role: true },
+    });
     if (!user) {
       throw new NotFoundError("Credenciais inválidas");
     }

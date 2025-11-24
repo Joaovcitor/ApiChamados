@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import UserService from "./user.service";
 import type { UserCreateDTO } from "./user.dto";
 import { sendSuccess } from "../../core/utils/responseHandler";
-import type { RolesUser } from "@prisma/client";
+import type { EnumRolesUser } from "@prisma/client";
 
 class UserController {
   async create(req: Request, res: Response) {
@@ -22,8 +22,20 @@ class UserController {
   }
   async changeRoleUser(req: Request, res: Response) {
     const id = Number(req.params.id);
-    const role = req.body.role as RolesUser;
+    const role = req.body.role as EnumRolesUser;
     const updatedUser = await UserService.changeRoleUser(id, role);
+    return sendSuccess(res, updatedUser);
+  }
+  async addRoleUser(req: Request, res: Response) {
+    const id = Number(req.params.id);
+    const role = req.body.role as EnumRolesUser;
+    const updatedUser = await UserService.addRole(id, role);
+    return sendSuccess(res, updatedUser);
+  }
+  async removeRoleUser(req: Request, res: Response) {
+    const id = Number(req.params.id);
+    const role = req.body.role as EnumRolesUser;
+    const updatedUser = await UserService.removeRoleUser(id, role);
     return sendSuccess(res, updatedUser);
   }
 }
