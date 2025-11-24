@@ -26,6 +26,19 @@ export default class AuthController {
     const user = await authService.getUser(token);
     sendSuccess(res, { user });
   }
+  static async sendMailResetPassword(req: Request, res: Response) {
+    const { email } = req.body;
+    const authService = new AuthService();
+    const result = await authService.sendMailResetPassword(email);
+    sendSuccess(res, result);
+  }
+  static async resetPasswordByToken(req: Request, res: Response) {
+    const { newPassword } = req.body;
+    const token = req.params.token;
+    const authService = new AuthService();
+    const result = await authService.resetPasswordByToken(token, newPassword);
+    sendSuccess(res, result);
+  }
   static async updateEmail(req: Request, res: Response) {
     const userId = req.user?.id;
     if (!userId) {

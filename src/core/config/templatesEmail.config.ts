@@ -1,5 +1,6 @@
 // emailTemplates.ts
-
+import dotenv from "dotenv";
+dotenv.config();
 export const emailTemplates = {
   // 1. Template de Boas-vindas
   welcome: (name: string, actionUrl: string) => `
@@ -17,9 +18,9 @@ export const emailTemplates = {
   // 2. Template de Recuperação de Senha
   resetPassword: (resetToken: string) => `
     <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-      <h2 style="color: #d93025;">Recuperação de Senha</h2>
+      <h2 style="color: #d93025;">Recuperação de Senha - Sistema de Chamados SADSUAS</h2>
       <p>Recebemos uma solicitação para redefinir sua senha. Se foi você, entre pelo link abaixo e redefina sua senha:</p>
-      <p>Clique no link direto: <a href="${process.env.URL_PROD}/reset/${resetToken}">Redefinir agora</a></p>
+      <p>Clique no link direto: <a href="${process.env.URL_PROD}/reset-password/${resetToken}">Redefinir agora</a></p>
       <p style="color: #888;">Este link expira em 1 hora.</p>
     </div>
   `,

@@ -1,5 +1,6 @@
 import { DepartmentDto, DepartmentUpdateDto } from "./department.dto";
 import { prisma } from "../../core/prisma/prisma";
+import { BadRequestError, ConflictError } from "../../core/errors/appError";
 
 class DepartmentService {
   async create(departmentDto: DepartmentDto) {
@@ -51,11 +52,11 @@ class DepartmentService {
     if (!user) {
       throw new Error("User not found");
     }
-    
+
     const hasAgentRole = user.role.some((r) => r.role === "AGENT");
 
     if (!hasAgentRole) {
-      throw new Error("User not agent");
+      throw new BadRequestError("Usuário não é um agente");
     }
     const listDepartmentUser = await prisma.listDepartmentUser.findMany({
       where: {
@@ -63,7 +64,7 @@ class DepartmentService {
       },
     });
     if (listDepartmentUser.map((item) => item.userId).includes(user.id)) {
-      throw new Error("User already in department");
+      throw new ConflictError("Usuário já está associado a este departamento");
     }
     return prisma.listDepartmentUser.create({
       data: {

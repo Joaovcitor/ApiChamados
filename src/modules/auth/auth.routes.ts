@@ -19,4 +19,14 @@ authRouter.put(
   isAuthenticated,
   AuthController.updatePassword
 );
+authRouter.post(
+  "/reset-password",
+  rateLimitConfig(3, 60 * 1000),
+  AuthController.sendMailResetPassword
+);
+authRouter.post(
+  "/reset-password/:token",
+  rateLimitConfig(3, 60 * 1000),
+  AuthController.resetPasswordByToken
+);
 export default authRouter;
